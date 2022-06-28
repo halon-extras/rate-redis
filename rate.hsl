@@ -1,0 +1,29 @@
+function rate($namespace, $entry, $count, $interval) {
+    if ($count === 0) {
+        $response = redisClusterCommand("GET", "$namespace:$entry:count");
+        if ($response["error"]) throw Exception($response["error"]);
+        return number($response["reply"]);
+    }
+
+    $response = redisClusterCommand("GET", "$namespace:$entry:time");
+    if ($response["error"]) throw Exception($response["error"]);
+    $time = number($response["reply"]);
+    
+    if (time() - $time >= $interval) {
+        $response = redisClusterCommand("SET", "$namespace:$entry:time", string(time()), "EX", string($interval));
+        if ($response["error"]) throw Exception($response["error"]);
+        $response = redisClusterCommand("SET", "$namespace:$entry:count", "0");
+        if ($response["error"]) throw Exception($response["error"]);
+    } else {
+        $response = redisClusterCommand("GET", "$namespace:$entry:count");
+        if ($response["error"]) throw Exception($response["error"]);
+        $current = number($response["reply"]);
+        if ($current >= $count) {
+            return false;
+        }
+    }
+
+    $response = redisClusterCommand("INCR", "$namespace:$entry:count");
+    if ($response["error"]) throw Exception($response["error"]);
+    return true;
+}
