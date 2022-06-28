@@ -1,13 +1,15 @@
 # Rate limiting client (Redis)
 
 A rate limiting client using Redis.
+
+## Prerequisites
 This HSL module requires that the [hiredis-cluster](https://github.com/halon-extras/hiredis-cluster) plugin is installed.
 
 ## Exported functions
 
 ### rate(namespace, entry, count, interval)
 
-Check or account for the rate of `entry` in `namespace` during the last `interval`. On error `none` is returned.
+Check or account for the rate of `entry` in `namespace` during the last `interval`. On error an exception is thrown.
 
 **Params**
 
