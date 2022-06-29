@@ -12,7 +12,7 @@ function rate($namespace, $entry, $count, $interval) {
     if (time() - $time >= $interval) {
         $response = redisClusterCommand("SET", "$namespace:$entry:time", string(time()), "EX", string($interval));
         if ($response["error"]) throw Exception($response["error"]);
-        $response = redisClusterCommand("SET", "$namespace:$entry:count", "0");
+        $response = redisClusterCommand("SET", "$namespace:$entry:count", "0", "EX", string($interval));
         if ($response["error"]) throw Exception($response["error"]);
     } else {
         $response = redisClusterCommand("GET", "$namespace:$entry:count");
