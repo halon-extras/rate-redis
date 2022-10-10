@@ -1,3 +1,5 @@
+import { redisClusterCommand } from "extras://hiredis-cluster";
+
 function rate($namespace, $entry, $count, $interval) {
     if ($count === 0) {
         $response = redisClusterCommand("GET", "$namespace:$entry:count");

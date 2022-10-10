@@ -2,10 +2,29 @@
 
 A rate limiting client using Redis.
 
+## Installation
+
+Follow the [instructions](https://docs.halon.io/manual/comp_install.html#installation) in our manual to add our package repository and then run the below command.
+
+### Ubuntu
+
+```
+apt-get install halon-extras-rate-redis
+```
+
+### RHEL
+
+```
+yum install halon-extras-rate-redis
+```
+
 ## Prerequisites
+
 This HSL module requires that the [hiredis-cluster](https://github.com/halon-extras/hiredis-cluster) plugin is installed.
 
 ## Exported functions
+
+These functions needs to be [imported](https://docs.halon.io/hsl/structures.html#import) from the `extras://rate-redis` module path.
 
 ### rate(namespace, entry, count, interval)
 
