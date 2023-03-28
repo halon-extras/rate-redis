@@ -50,3 +50,7 @@ if (rate("outbound", $connection["auth"]["username"], 3, 60) == false) {
       Reject("User is only allowed to send 3 messages per minute");
 }
 ```
+
+### rate_sliding_window(namespace, entry, count, interval)
+
+Works the same as the `rate` function but uses a sliding window instead of a fixed window.
