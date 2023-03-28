@@ -1,1 +1,1 @@
-import { rate } from "./rate.hsl";
+import { rate, rate_sliding_window } from "./rate.hsl";
