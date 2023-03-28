@@ -51,7 +51,7 @@ function rate_sliding_window($namespace, $entry, $count, $interval) {
         return false;
     }
 
-    $lastWindow = round(($time - $interval) / $interval);
+    $lastWindow = floor(($time - $interval) / $interval);
     $response = redisClusterCommand("GET", "$namespace:$entry:$lastWindow");
     if ($response["error"]) throw Exception($response["error"]);
     $lastWindowCount = number($response["reply"]);
