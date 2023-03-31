@@ -38,16 +38,12 @@ function rate_sliding_window($namespace, $entry, $count, $interval) {
     if ($response["error"]) throw Exception($response["error"]);
     $currentWindowCount = number($response["reply"]);
 
-    if ($count === 0) {
-        return $currentWindowCount;
-    }
-
-    if ($currentWindowCount === 0) {
+    if ($count !== 0 and $currentWindowCount === 0) {
         $response = redisClusterCommand("SET", "$namespace:$entry:$currentWindow", "0", "EX", string($interval * 2));
         if ($response["error"]) throw Exception($response["error"]);
     }
 
-    if ($currentWindowCount >= $count) {
+    if ($count and $currentWindowCount >= $count) {
         return false;
     }
 
@@ -57,7 +53,13 @@ function rate_sliding_window($namespace, $entry, $count, $interval) {
     $lastWindowCount = number($response["reply"]);
 
     $elapsedTimePercentage = ($time % $interval) / $interval;
-    if ($lastWindowCount * (1 - $elapsedTimePercentage) + $currentWindowCount >= $count) {
+    $combinedCount = floor($lastWindowCount * (1 - $elapsedTimePercentage)) + $currentWindowCount;
+
+    if ($count === 0) {
+        return $combinedCount;
+    }
+
+    if ($combinedCount >= $count) {
         return false;
     }
 
