@@ -1,46 +1,48 @@
-import { redisClusterCommand } from "extras://hiredis-cluster";
+import { Redis } from "extras://redis";
 
-function rate($namespace, $entry, $count, $interval) {
+function rate_fixed_window($namespace, $entry, $count, $interval, $options = []) {
+    if ($options["profile"])
+        $redis = Redis($options["profile"]);
+    else
+        $redis = Redis();
+
     if ($count === 0) {
-        $response = redisClusterCommand("GET", "$namespace:$entry:count");
-        if ($response["error"]) throw Exception($response["error"]);
-        return number($response["reply"]);
+        $response = $redis->command("GET", "$namespace:$entry:count");
+        return number($response);
     }
 
-    $response = redisClusterCommand("GET", "$namespace:$entry:time");
-    if ($response["error"]) throw Exception($response["error"]);
-    $time = number($response["reply"]);
+    $response = $redis->command("GET", "$namespace:$entry:time");
+    $time = number($response);
     
     if (time() - $time >= $interval) {
-        $response = redisClusterCommand("SET", "$namespace:$entry:time", string(time()), "EX", string($interval));
-        if ($response["error"]) throw Exception($response["error"]);
-        $response = redisClusterCommand("SET", "$namespace:$entry:count", "0", "EX", string($interval));
-        if ($response["error"]) throw Exception($response["error"]);
+        $redis->command("SET", "$namespace:$entry:time", string(time()), "EX", string($interval));
+        $redis->command("SET", "$namespace:$entry:count", "0", "EX", string($interval));
     } else {
-        $response = redisClusterCommand("GET", "$namespace:$entry:count");
-        if ($response["error"]) throw Exception($response["error"]);
-        $current = number($response["reply"]);
+        $response = $redis->command("GET", "$namespace:$entry:count");
+        $current = number($response);
         if ($current >= $count) {
             return false;
         }
     }
 
-    $response = redisClusterCommand("INCR", "$namespace:$entry:count");
-    if ($response["error"]) throw Exception($response["error"]);
+    $redis->command("INCR", "$namespace:$entry:count");
     return true;
 }
 
-function rate_sliding_window($namespace, $entry, $count, $interval) {
+function rate_sliding_window($namespace, $entry, $count, $interval, $options = []) {
+    if ($options["profile"])
+        $redis = Redis($options["profile"]);
+    else
+        $redis = Redis();
+
     $time = time();
 
     $currentWindow = floor($time / $interval);
-    $response = redisClusterCommand("GET", "$namespace:$entry:$currentWindow");
-    if ($response["error"]) throw Exception($response["error"]);
-    $currentWindowCount = number($response["reply"]);
+    $response = $redis->command("GET", "$namespace:$entry:$currentWindow");
+    $currentWindowCount = number($response);
 
     if ($count !== 0 and $currentWindowCount === 0) {
-        $response = redisClusterCommand("SET", "$namespace:$entry:$currentWindow", "0", "EX", string($interval * 2));
-        if ($response["error"]) throw Exception($response["error"]);
+        $redis->command("SET", "$namespace:$entry:$currentWindow", "0", "EX", string($interval * 2));
     }
 
     if ($count and $currentWindowCount >= $count) {
@@ -48,9 +50,8 @@ function rate_sliding_window($namespace, $entry, $count, $interval) {
     }
 
     $lastWindow = floor(($time - $interval) / $interval);
-    $response = redisClusterCommand("GET", "$namespace:$entry:$lastWindow");
-    if ($response["error"]) throw Exception($response["error"]);
-    $lastWindowCount = number($response["reply"]);
+    $response = $redis->command("GET", "$namespace:$entry:$lastWindow");
+    $lastWindowCount = number($response);
 
     $elapsedTimePercentage = ($time % $interval) / $interval;
     $combinedCount = floor($lastWindowCount * (1 - $elapsedTimePercentage)) + $currentWindowCount;
@@ -63,7 +64,6 @@ function rate_sliding_window($namespace, $entry, $count, $interval) {
         return false;
     }
 
-    $response = redisClusterCommand("INCR", "$namespace:$entry:$currentWindow");
-    if ($response["error"]) throw Exception($response["error"]);
+    $redis->command("INCR", "$namespace:$entry:$currentWindow");
     return true;
 }

@@ -20,13 +20,13 @@ yum install halon-extras-rate-redis
 
 ## Prerequisites
 
-This HSL module requires that the [hiredis-cluster](https://github.com/halon-extras/hiredis-cluster) plugin is installed.
+This HSL module requires that the [redis](https://github.com/halon-extras/redis) plugin is installed.
 
 ## Exported functions
 
 These functions needs to be [imported](https://docs.halon.io/hsl/structures.html#import) from the `extras://rate-redis` module path.
 
-### rate(namespace, entry, count, interval)
+### rate_fixed_window(namespace, entry, count, interval [, options])
 
 Check or account for the rate of `entry` in `namespace` during the last `interval`. On error an exception is thrown.
 
@@ -36,6 +36,8 @@ Check or account for the rate of `entry` in `namespace` during the last `interva
 - entry `string` - The entry
 - count `number` - The count
 - interval `number` - The interval in seconds
+- options `array` - The options
+  - profile `number` - The `rate-redis` config profile
 
 **Returns**
 
@@ -44,13 +46,13 @@ If `count` is greater than zero, it will increase the rate and return `true`, or
 **Example**
 
 ```
-import { rate } from "extras://rate-redis";
+import { rate_fixed_window as rate } from "extras://rate-redis";
 
 if (rate("outbound", $connection["auth"]["username"], 3, 60) == false) {
       Reject("User is only allowed to send 3 messages per minute");
 }
 ```
 
-### rate_sliding_window(namespace, entry, count, interval)
+### rate_sliding_window(namespace, entry, count, interval [, options])
 
 Works the same as the `rate` function but uses a sliding window instead of a fixed window.
