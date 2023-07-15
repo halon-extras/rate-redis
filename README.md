@@ -37,7 +37,7 @@ Check or account for the rate of `entry` in `namespace` during the last `interva
 - count `number` - The count
 - interval `number` - The interval in seconds
 - options `array` - The options
-  - profile `string` - The `rate-redis` config profile
+  - profile `string` - The `redis` plugin config profile
 
 **Returns**
 
